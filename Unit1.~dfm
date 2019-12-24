@@ -1,6 +1,6 @@
 object Monopoly: TMonopoly
-  Left = 178
-  Top = 96
+  Left = 270
+  Top = 73
   Width = 1378
   Height = 771
   Caption = 'Monopoly'
@@ -25062,7 +25062,7 @@ object Monopoly: TMonopoly
   end
   object GroupBox1: TGroupBox
     Left = 504
-    Top = 136
+    Top = 160
     Width = 473
     Height = 97
     Caption = #1042#1072#1096' '#1093#1086#1076'!'
@@ -25106,7 +25106,7 @@ object Monopoly: TMonopoly
   end
   object GroupBox2: TGroupBox
     Left = 504
-    Top = 136
+    Top = 232
     Width = 473
     Height = 97
     Caption = #1050#1091#1087#1080#1090#1100' '#1087#1086#1083#1077
@@ -25216,7 +25216,7 @@ object Monopoly: TMonopoly
   end
   object GroupBox3: TGroupBox
     Left = 504
-    Top = 136
+    Top = 320
     Width = 473
     Height = 97
     Caption = #1044#1078#1077#1082#1087#1086#1090

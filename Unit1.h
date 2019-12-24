@@ -263,6 +263,7 @@ __published:	// IDE-managed Components
         void __fastcall BitBtn7Click(TObject *Sender);
         void __fastcall BitBtn8Click(TObject *Sender);
         void __fastcall BitBtn9Click(TObject *Sender);
+        void __fastcall BitBtn10Click(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
         __fastcall TMonopoly(TComponent* Owner);

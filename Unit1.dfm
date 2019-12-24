@@ -1,8 +1,8 @@
 object Monopoly: TMonopoly
-  Left = 178
-  Top = 96
-  Width = 1378
-  Height = 771
+  Left = -8
+  Top = -8
+  Width = 1382
+  Height = 784
   Caption = 'Monopoly'
   Color = clGray
   Font.Charset = DEFAULT_CHARSET
@@ -25257,6 +25257,7 @@ object Monopoly: TMonopoly
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 1
+      OnClick = BitBtn10Click
     end
     object RadioButton1: TRadioButton
       Left = 16

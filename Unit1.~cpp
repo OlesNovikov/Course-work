@@ -26,9 +26,8 @@ typedef
         } player;
 
 typedef
-         struct Fields {
+         struct Fields {                   
                 char name[30];
-                //AnsiString name;
                 int cost, number;
                 int pay, star1, star2, star3, star4, BigStar;
                 int players, owner;
@@ -36,7 +35,7 @@ typedef
 
 const int StartMoney = 15000;
 const int Lap = 2000, LapBonus = 1000;
-int AmountOfPlayers = 0;
+int AmountOfPlayers = 0, HideGroupBox = 0;
 F field[40];
 player *pl, *head;
 //---------------------------------------------------------------------------
@@ -234,7 +233,7 @@ void HideFields() {
 }
 
 int GetRandomNumber(void) {
-        int result = 0;
+        int result = 0;             
 	result = 1 + (rand() % 6);
         return result;
 }
@@ -246,7 +245,7 @@ void ColorPlayer() {
         else Monopoly -> Player4 -> Color = clPurple;
 }
 
-int ReadFromFile(F *field, char *path) {
+void ReadFromFile(F *field, char *path) {
         int count = 0;
         FILE* f = fopen(path, "r");
         while (!(feof(f))){
@@ -256,36 +255,24 @@ int ReadFromFile(F *field, char *path) {
                 count++;
         }
         fclose(f);
-        return count;
 }
 
 void ViewInChat(int LeftCoub, int RightCoub) {
-        const int jail = 10, start = 0, gotojail = 30, jackpot = 20;
+        const int jail = 10, gotojail = 30, jackpot = 20;     
         AnsiString str;
         str = field[pl -> CurrentField].name;
         Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " выбрасывает " + AnsiString(LeftCoub) + ":" + AnsiString(RightCoub));
 
         if ((field[pl -> CurrentField].cost != 0) && (pl -> CurrentField != 4) && (pl -> CurrentField != 36)) {
-                if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner != pl -> color)) {
-                        Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на " + str + " и должен заплатить аренду " + AnsiString(field[pl -> CurrentField].pay) + "k");
-                } else if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner == pl -> color)) {
-                        Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на своё поле и ничего не платит");
-                } else {
-                        Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на " + str + " и задумывается о покупке");
-                }
-        } else if ((pl -> CurrentField == 4) || (pl -> CurrentField == 36)) {
-                Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на Налог и должен заплатить " + AnsiString(field[pl -> CurrentField].cost) + "k");
-        } else if ((pl -> CurrentField == 2) || (pl -> CurrentField == 7) || (pl -> CurrentField == 17) || (pl -> CurrentField == 22) || (pl -> CurrentField == 33) || (pl -> CurrentField == 38)) {
-                Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на поле " + str);
-        } else if (pl -> CurrentField == jail) {
-                Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на экскурсию в тюрьму");
-        } else if (pl -> CurrentField == gotojail) {
-                Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " отправляется в тюрьму за мошенничество");
-        } else if (pl -> CurrentField == jackpot) {
-                Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на Джекпот и может попытать удачу ");
-        } else {
-                ShowMessage("что-то не то");
-        }
+                if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner != pl -> color)) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на " + str + " и должен заплатить аренду " + AnsiString(field[pl -> CurrentField].pay) + "k");
+                else if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner == pl -> color)) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на своё поле и ничего не платит");
+                else Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на " + str + " и задумывается о покупке");
+        } else if ((pl -> CurrentField == 4) || (pl -> CurrentField == 36)) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на Налог и должен заплатить " + AnsiString(field[pl -> CurrentField].cost) + "k");
+        else if ((pl -> CurrentField == 2) || (pl -> CurrentField == 7) || (pl -> CurrentField == 17) || (pl -> CurrentField == 22) || (pl -> CurrentField == 33) || (pl -> CurrentField == 38)) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на поле " + str);
+        else if (pl -> CurrentField == jail) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на экскурсию в тюрьму");
+        else if (pl -> CurrentField == gotojail) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " отправляется в тюрьму за мошенничество");
+        else if (pl -> CurrentField == jackpot) Monopoly -> Chat -> Lines -> Add(AnsiString(pl -> name) + " попадает на Джекпот и может попытать удачу ");
+        else ShowMessage("что-то не то");
 }
 
 void DrawCoubes(int LeftCoub, int RightCoub) {
@@ -383,6 +370,26 @@ int PlayJackpod() {
         return result;
 }
 
+void HidePanels() {
+        Monopoly -> Panel1 -> Hide();
+        Monopoly -> Panel2 -> Hide();
+        Monopoly -> Panel3 -> Hide();
+        Monopoly -> Panel4 -> Hide();
+}
+
+void AddPlayerToList() {
+        AmountOfPlayers++;
+        pl -> next = (struct PlayerProfile*)malloc(sizeof(struct PlayerProfile));
+        pl = pl -> next;
+        pl -> cash = StartMoney;
+        pl -> CoubSum = 0;
+        pl -> amountoffields = 0;
+        pl -> MovesLeft = 1;
+        pl -> DoubleMoves = 0;
+        pl -> CurrentField = 0;
+        pl -> next = NULL;
+}
+
 void __fastcall TMonopoly::StartGameButtonClick(TObject *Sender)
 {
         ShowButtons();
@@ -394,7 +401,7 @@ void __fastcall TMonopoly::StartGameButtonClick(TObject *Sender)
 void __fastcall TMonopoly::FormCreate(TObject *Sender)
 {
         char *path = "Fields.txt";
-        int count = ReadFromFile(field, path);
+        ReadFromFile(field, path);
         HideButtons();
         HideFields();
 }
@@ -420,16 +427,7 @@ void __fastcall TMonopoly::Player1ReadyClick(TObject *Sender)
                 pl = head;
                 pl -> next = NULL;
 
-                AmountOfPlayers++;
-                pl -> next = (struct PlayerProfile*)malloc(sizeof(struct PlayerProfile));
-                pl = pl -> next;
-                pl -> cash = StartMoney;
-                pl -> CoubSum = 0;
-                pl -> amountoffields = 0;
-                pl -> MovesLeft = 1;
-                pl -> DoubleMoves = 0;
-                pl -> CurrentField = 0;
-                pl -> next = NULL;
+                AddPlayerToList();
                 pl -> color = 1;
                 pl -> name = Player1Nickname -> Text.c_str();
                 Player1Name -> Caption = Player1Nickname -> Text;
@@ -446,16 +444,7 @@ void __fastcall TMonopoly::Player1ReadyClick(TObject *Sender)
 void __fastcall TMonopoly::Player2ReadyClick(TObject *Sender)
 {
         if (Player2Nickname -> Text.Length() != 0) {
-                AmountOfPlayers++;
-                pl -> next = (struct PlayerProfile*)malloc(sizeof(struct PlayerProfile));
-                pl = pl -> next;
-                pl -> cash = StartMoney;
-                pl -> CoubSum = 0;
-                pl -> amountoffields = 0;
-                pl -> MovesLeft = 1;
-                pl -> DoubleMoves = 0;
-                pl -> CurrentField = 0;
-                pl -> next = NULL;
+                AddPlayerToList();
                 pl -> color = 2;
                 pl -> name = Player2Nickname -> Text.c_str();
                 Player2Name -> Caption = Player2Nickname -> Text;
@@ -471,16 +460,7 @@ void __fastcall TMonopoly::Player2ReadyClick(TObject *Sender)
 void __fastcall TMonopoly::Player3ReadyClick(TObject *Sender)
 {
         if (Player3Nickname -> Text.Length() != 0) {
-                AmountOfPlayers++;
-                pl -> next = (struct PlayerProfile*)malloc(sizeof(struct PlayerProfile));
-                pl = pl -> next;
-                pl -> cash = StartMoney;
-                pl -> CoubSum = 0;
-                pl -> amountoffields = 0;
-                pl -> MovesLeft = 1;
-                pl -> DoubleMoves = 0;
-                pl -> CurrentField = 0;
-                pl -> next = NULL;
+                AddPlayerToList();
                 pl -> color = 3;
                 pl -> name = Player3Nickname -> Text.c_str();
                 Player3Name -> Caption = Player3Nickname -> Text;
@@ -496,16 +476,7 @@ void __fastcall TMonopoly::Player3ReadyClick(TObject *Sender)
 void __fastcall TMonopoly::Player4ReadyClick(TObject *Sender)
 {
         if (Player4Nickname -> Text.Length() != 0) {
-                AmountOfPlayers++;
-                pl -> next = (struct PlayerProfile*)malloc(sizeof(struct PlayerProfile));
-                pl = pl -> next;
-                pl -> cash = StartMoney;
-                pl -> CoubSum = 0;
-                pl -> amountoffields = 0;
-                pl -> MovesLeft = 1;
-                pl -> DoubleMoves = 0;
-                pl -> CurrentField = 0;
-                pl -> next = NULL;
+                AddPlayerToList();
                 pl -> color = 4;
                 pl -> name = Player4Nickname -> Text.c_str();
                 Player4Name -> Caption = Player4Nickname -> Text;
@@ -526,15 +497,11 @@ void __fastcall TMonopoly::BitBtn2Click(TObject *Sender)
         const int jail = 10, jackpot = 20, gotojail = 30, start = 0;
         int X = 0, Y = 0;
         int LeftCoub = 0, RightCoub = 0;
-        int sum = 0, transfer = 0;
         int RandomNumber = 0;
-        int begin = 0, more = 0;
+        int more = 0;
 
-        //GroupBox2 -> Hide();
-        Panel1 -> Hide();
-        Panel2 -> Hide();
-        Panel3 -> Hide();
-        Panel4 -> Hide();
+        HideGroupBox = 0;
+        HidePanels();
         GroupBox1 -> Hide();
         srand(time(NULL));
         LeftCoub = GetRandomNumber();
@@ -723,24 +690,29 @@ void __fastcall TMonopoly::BitBtn2Click(TObject *Sender)
                                 break;
                 }
         }
-        MovePlayer(X, Y);
+        MovePlayer(X, Y);                         
 
 //==============================================================================
         if ((field[pl -> CurrentField].cost != 0) && (pl -> CurrentField != 4) && (pl -> CurrentField != 36)) {
                 if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner != pl -> color)) {
-                        if ((pl -> CurrentField == 12) || (pl -> CurrentField == 28)) field[pl -> CurrentField].pay *= pl -> CoubSum;
-                        BitBtn3 -> Caption = "Заплатить " + AnsiString(field[pl -> CurrentField].pay * pl -> CoubSum) + "k";
+                        if ((pl -> CurrentField == 12) || (pl -> CurrentField == 28)) {
+                                field[pl -> CurrentField].pay *= pl -> CoubSum;
+                        }
                         if (pl -> cash - field[pl -> CurrentField].pay >= 0) BitBtn3 -> Enabled = true;
                         else BitBtn3 -> Enabled = false;
-                } else if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner == pl -> color)) {
-                        NextPlayer();
-                } else {
+                        BitBtn3 -> Caption = "Заплатить " + AnsiString(field[pl -> CurrentField].pay) + "k";
+                        BitBtn3 -> Width = 441;
+                        BitBtn4 -> Hide();
+                } else if ((field[pl -> CurrentField].owner != 0) && (field[pl -> CurrentField].owner == pl -> color)) NextPlayer();
+                else {
                         BitBtn3 -> Caption = "Заплатить " + AnsiString(field[pl -> CurrentField].cost) + "k";
                         if (pl -> cash - field[pl -> CurrentField].cost >= 0) BitBtn3 -> Enabled = true;
                         else BitBtn3 -> Enabled = false;
                 }
         } else if ((pl -> CurrentField == 4) || (pl -> CurrentField == 36)) {
                 BitBtn3 -> Caption = "Заплатить " + IntToStr(field[pl -> CurrentField].cost) + "k";
+                BitBtn3 -> Width = 441;
+                BitBtn4 -> Hide();
                 if (pl -> cash - field[pl -> CurrentField].cost >= 0) BitBtn3 -> Enabled = true;
                 else BitBtn3 -> Enabled = false;
         } else if ((pl -> CurrentField == 2) || (pl -> CurrentField == 7) || (pl -> CurrentField == 17) || (pl -> CurrentField == 22) || (pl -> CurrentField == 33) || (pl -> CurrentField == 38)) {
@@ -752,13 +724,16 @@ void __fastcall TMonopoly::BitBtn2Click(TObject *Sender)
                                         Chat -> Lines -> Add(AnsiString(pl -> name) + " получает " + AnsiString(field[pl -> CurrentField].pay) + "k от банка");
                                         ShowMoney();
                                         NextPlayer();
+                                        HideGroupBox = 1;
                                         break;
                                 case 1: field[pl -> CurrentField].pay = 1000;
                                         Chat -> Lines -> Add(AnsiString(pl -> name) + " должен заплатить банку " + IntToStr(field[pl -> CurrentField].pay) + "k");
                                         BitBtn3 -> Caption = "Заплатить " + IntToStr(field[pl -> CurrentField].pay) + "k";
+                                        BitBtn3 -> Width = 441;
+                                        BitBtn4 -> Hide();
                                         if (pl -> cash - field[pl -> CurrentField].pay >= 0) BitBtn3 -> Enabled = true;
                                         else BitBtn3 -> Enabled = false;
-                                        GroupBox2 -> Show();
+                                        GroupBox2 -> Show();                       
                                         break;                               
                                 default: ShowMessage("kek, smth wrong!!!");
                                          break;
@@ -827,7 +802,7 @@ void __fastcall TMonopoly::Timer1Timer(TObject *Sender)
         Panel15 -> Hide();              
         Panel16 -> Hide();
         GroupBox1 -> Show();
-        if ((field[pl -> CurrentField].cost != 0) || (field[pl -> CurrentField].owner == 0)) {
+        if ((field[pl -> CurrentField].cost != 0) && (HideGroupBox == 0)) {
                 GroupBox2 -> Show();
         }
 }
@@ -837,10 +812,7 @@ void __fastcall TMonopoly::BitBtn3Click(TObject *Sender)
         player *temp;
         int tempnumber = 0, tempcolor = 0, money = 0;
         AnsiString str;
-        Panel1 -> Hide();
-        Panel2 -> Hide();
-        Panel3 -> Hide();
-        Panel4 -> Hide();
+        HidePanels();
         str = field[pl -> CurrentField].name;
         if ((field[pl -> CurrentField].owner == 0) && (pl -> CurrentField != 2) && (pl -> CurrentField != 4) && (pl -> CurrentField != 7) && (pl -> CurrentField != 17) && (pl -> CurrentField != 22) && (pl -> CurrentField != 33) && (pl -> CurrentField != 36) && (pl -> CurrentField != 38)) {
                 pl -> cash -= field[pl -> CurrentField].cost;
@@ -1243,8 +1215,8 @@ void __fastcall TMonopoly::BitBtn3Click(TObject *Sender)
                         tempcolor = pl -> color;
                 }
         } else if ((pl -> CurrentField == 2) || (pl -> CurrentField == 7) || (pl -> CurrentField == 17) || (pl -> CurrentField == 22) || (pl -> CurrentField == 33) || (pl -> CurrentField == 38)) {
-                pl -> cash -= field[pl -> CurrentField].cost;
-                Chat -> Lines -> Add(AnsiString(pl -> name) + " заплатил 1000k банку ");
+                pl -> cash -= field[pl -> CurrentField].pay;
+                Chat -> Lines -> Add(AnsiString(pl -> name) + " заплатил " + AnsiString(field[pl -> CurrentField].pay) + "k банку ");
         }
                 switch (pl -> color) {
                         case 1: Player1Money -> Caption = "$" + IntToStr(pl -> cash) + "k";
@@ -1270,6 +1242,8 @@ void __fastcall TMonopoly::BitBtn3Click(TObject *Sender)
                         ColorPlayer();
                         GroupBox1 -> Show();
                 }
+                BitBtn3 -> Width = 209;
+                BitBtn4 -> Show();
                 GroupBox2 -> Hide();
 }
 //---------------------------------------------------------------------------
@@ -1277,6 +1251,7 @@ void __fastcall TMonopoly::BitBtn3Click(TObject *Sender)
 void __fastcall TMonopoly::BitBtn4Click(TObject *Sender)
 {
         GroupBox2 -> Hide();
+        NextPlayer();
 }
 
 void __fastcall TMonopoly::Player2Click(TObject *Sender)
@@ -1289,34 +1264,37 @@ void __fastcall TMonopoly::Player2Click(TObject *Sender)
 
 void __fastcall TMonopoly::Player1Click(TObject *Sender)
 {
+        if (AmountOfPlayers > 1) {
                 if ((pl -> color == 1) && (pl != NULL)) {
                         Panel1 -> Show();
                 }
+        }
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TMonopoly::Player3Click(TObject *Sender)
 {
+        if (AmountOfPlayers > 1) {
                 if ((pl -> color == 3) && (pl != NULL)) {
                         Panel3 -> Show();
                 }
+        }
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TMonopoly::Player4Click(TObject *Sender)
 {
+        if (AmountOfPlayers > 1) {
                 if ((pl -> color == 4) && (pl != NULL)) {
                         Panel4 -> Show();
                 }
+        }
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TMonopoly::FormClick(TObject *Sender)
 {
-        Panel1 -> Hide();
-        Panel2 -> Hide();
-        Panel3 -> Hide();
-        Panel4 -> Hide();
+        HidePanels();
 }
 //---------------------------------------------------------------------------
 
@@ -1335,6 +1313,7 @@ void __fastcall TMonopoly::BitBtn5Click(TObject *Sender)
         AddPlayer1 -> Hide();
         Panel1 -> Hide();
         Player1 -> Hide();
+        Player1Shape -> Hide();
         pl = pl -> next;
         ColorPlayer();
         if (AmountOfPlayers == 1) {
@@ -1354,20 +1333,20 @@ void __fastcall TMonopoly::BitBtn6Click(TObject *Sender)
         while (pl -> next != DeleteAdress) {
                 if (pl -> next == NULL) pl = head;
                 pl = pl -> next;
-        }
+        }                                      
         pl -> next = DeleteAdress -> next;
         free(DeleteAdress);
         AmountOfPlayers--;
         Panel2 -> Hide();
         Player2 -> Hide();
-        pl = pl -> next;
+        Player2Shape -> Hide();                     
         ColorPlayer();
         if (AmountOfPlayers == 1) {
                 HideButtons();
                 HideFields();
                 Label3 -> Show();
                 Label3 -> Caption = AnsiString(pl -> name) + " ЗАНЯЛ 1 МЕСТО";
-        }        
+        } else NextPlayer();
 }
 //---------------------------------------------------------------------------
 
@@ -1385,14 +1364,14 @@ void __fastcall TMonopoly::BitBtn7Click(TObject *Sender)
         AmountOfPlayers--;
         Panel3 -> Hide();
         Player3 -> Hide();
-        pl = pl -> next;
+        Player3Shape -> Hide();  
         ColorPlayer();
         if (AmountOfPlayers == 1) {
                 HideButtons();
                 HideFields();
                 Label3 -> Show();
                 Label3 -> Caption = AnsiString(pl -> name) + " ЗАНЯЛ 1 МЕСТО";
-        }        
+        } else NextPlayer();
 }
 //---------------------------------------------------------------------------
 
@@ -1410,33 +1389,35 @@ void __fastcall TMonopoly::BitBtn8Click(TObject *Sender)
         AmountOfPlayers--;
         Panel3 -> Hide();
         Player4 -> Hide();
-        pl = pl -> next;
+        Player4Shape -> Hide();
         ColorPlayer();
         if (AmountOfPlayers == 1) {
                 HideButtons();
                 HideFields();
                 Label3 -> Show();
                 Label3 -> Caption = AnsiString(pl -> name) + " ЗАНЯЛ 1 МЕСТО";
-        }        
+        } else NextPlayer();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TMonopoly::BitBtn9Click(TObject *Sender)
 {
+        const int prize = 6000, price = 1000;
         int MyNumber = 0, GuessNumber;
         if ((RadioButton1 -> Checked) || (RadioButton2 -> Checked) || (RadioButton3 -> Checked) || (RadioButton4 -> Checked) || (RadioButton5 -> Checked) || (RadioButton6 -> Checked)) {
+                GroupBox3 -> Hide();
                 if (RadioButton1 -> Checked) MyNumber = 1;
                 else if (RadioButton2 -> Checked) MyNumber = 2;
                 else if (RadioButton3 -> Checked) MyNumber = 3;
                 else if (RadioButton4 -> Checked) MyNumber = 4;
                 else if (RadioButton5 -> Checked) MyNumber = 5;
                 else if (RadioButton6 -> Checked) MyNumber = 6;
-                pl -> cash -= 1000;
+                pl -> cash -= price;
                 Chat -> Lines -> Add(AnsiString(pl -> name) + " поставил на " + AnsiString(MyNumber) + " 1000k" );
                 GuessNumber = PlayJackpod();
                 if (MyNumber == GuessNumber) {
                         Chat -> Lines -> Add("Выпадает " + AnsiString(GuessNumber) + " и " + AnsiString(pl -> name) + " выигрывает 6000k");
-                        pl -> cash += 6000;
+                        pl -> cash += prize;
                 } else Chat -> Lines -> Add("Выпадает " + AnsiString(GuessNumber) + " и " + AnsiString(pl -> name) + " ничего не выигрывает...");
                 ShowMoney();
         } else ShowMessage("Выберите значение кубика");
@@ -1446,7 +1427,6 @@ void __fastcall TMonopoly::BitBtn9Click(TObject *Sender)
         RadioButton4 -> Checked = false;
         RadioButton5 -> Checked = false;
         RadioButton6 -> Checked = false;
-        GroupBox3 -> Hide();
         NextPlayer();
 }
 //---------------------------------------------------------------------------
